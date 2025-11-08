@@ -1,15 +1,12 @@
-# main.py
+# main.py (Final Corrected Version)
 import os
 import google.generativeai as genai
 from twilio.rest import Client
 from flask import Flask
 
-# Initialize the Flask application
 app = Flask(__name__)
 
 # --- Load Environment Variables ---
-# This code will run once when the container starts.
-# It will crash with a clear error if a variable is missing.
 try:
     GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
     TWILIO_SID = os.environ["TWILIO_SID"]
@@ -18,7 +15,6 @@ try:
     WHATSAPP_TO = os.environ["WHATSAPP_TO"]
     print("SUCCESS: All environment variables loaded.")
 except KeyError as e:
-    # This provides a clear error in the logs if a variable is missing.
     raise RuntimeError(f"FATAL ERROR: Environment variable {e} not set.") from e
 
 # --- The Prompt for withAI Brain ---
@@ -30,19 +26,17 @@ The idea must be absolutely unique and pass your internal novelty review.
 Do not include any text before the "💡 **Idea Title:**" line.
 """
 
-# --- The Main Web Endpoint ---
 @app.route("/")
 def run_daily_idea_automation():
-    """
-    This is the main function triggered by Cloud Scheduler.
-    It runs the entire process of getting an idea and sending it.
-    """
+    """Main function triggered by Cloud Scheduler."""
     print("INFO: Automation process started by HTTP request.")
     
     # 1. Call the AI Brain
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.5-pro')
+        # --- THIS IS THE FINAL FIX ---
+        model = genai.GenerativeModel('gemini-1.0-pro') 
+        # ----------------------------
         response = model.generate_content(BRAIN_PROMPT)
         idea_text = response.text
         print("INFO: Idea generated successfully from AI.")
@@ -68,5 +62,4 @@ def run_daily_idea_automation():
     except Exception as e:
         error_message = f"ERROR: Failed to send WhatsApp message via Twilio: {e}"
         print(error_message)
-
         return error_message, 500
