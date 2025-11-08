@@ -42,7 +42,7 @@ def run_daily_idea_automation():
     # 1. Call the AI Brain
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-2.5-pro')
         response = model.generate_content(BRAIN_PROMPT)
         idea_text = response.text
         print("INFO: Idea generated successfully from AI.")
@@ -68,4 +68,5 @@ def run_daily_idea_automation():
     except Exception as e:
         error_message = f"ERROR: Failed to send WhatsApp message via Twilio: {e}"
         print(error_message)
+
         return error_message, 500
