@@ -1,4 +1,4 @@
-# main.py (Final Corrected Version)
+# main.py (Final Version with stable text-bison model)
 import os
 import google.generativeai as genai
 from twilio.rest import Client
@@ -34,11 +34,18 @@ def run_daily_idea_automation():
     # 1. Call the AI Brain
     try:
         genai.configure(api_key=GEMINI_API_KEY)
+        
         # --- THIS IS THE FINAL FIX ---
-        model = genai.GenerativeModel('gemini-1.0-pro') 
+        # Using the stable, globally available text-bison-001 model
+        # This model uses a different method name: generate_text
+        response = genai.generate_text(
+            model='models/text-bison-001',
+            prompt=BRAIN_PROMPT,
+            temperature=0.7,
+        )
+        idea_text = response.result
         # ----------------------------
-        response = model.generate_content(BRAIN_PROMPT)
-        idea_text = response.text
+
         print("INFO: Idea generated successfully from AI.")
     except Exception as e:
         error_message = f"ERROR: Failed to call Google AI API: {e}"
