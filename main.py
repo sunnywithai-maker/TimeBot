@@ -1,14 +1,20 @@
-# main.py (Final Corrected Version for text-bison model)
+# main.py (Final Version using Vertex AI)
 import os
-import google.generativeai as genai
+import vertexai
+from vertexai.generative_models import GenerativeModel
 from twilio.rest import Client
 from flask import Flask
 
 app = Flask(__name__)
 
-# --- Load Environment Variables ---
+# --- Project Configuration ---
+# These are now public details, not secrets.
+PROJECT_ID = "timebot-477600"
+LOCATION = "europe-west1" # Your Cloud Run region
+
+# --- Load Secrets ---
+# We no longer need a Gemini/AI API key.
 try:
-    GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
     TWILIO_SID = os.environ["TWILIO_SID"]
     TWILIO_TOKEN = os.environ["TWILIO_TOKEN"]
     WHATSAPP_FROM = os.environ["WHATSAPP_FROM"]
@@ -16,6 +22,10 @@ try:
     print("SUCCESS: All environment variables loaded.")
 except KeyError as e:
     raise RuntimeError(f"FATAL ERROR: Environment variable {e} not set.") from e
+
+# --- Initialize Vertex AI ---
+# This happens once when the container starts.
+vertexai.init(project=PROJECT_ID, location=LOCATION)
 
 # --- The Prompt for withAI Brain ---
 BRAIN_PROMPT = """
@@ -31,21 +41,15 @@ def run_daily_idea_automation():
     """Main function triggered by Cloud Scheduler."""
     print("INFO: Automation process started by HTTP request.")
     
-    # 1. Call the AI Brain
+    # 1. Call the Vertex AI Brain
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        
-        # --- THIS IS THE FINAL FIX ---
-        # Using the correct modern method for the stable text-bison model
-        model = genai.GenerativeModel('models/text-bison-001') 
+        # Load the Gemini 1.0 Pro model from Vertex AI
+        model = GenerativeModel("gemini-1.0-pro")
         response = model.generate_content(BRAIN_PROMPT)
-        # For this model, the result is in a different property
-        idea_text = response.candidates[0].content.parts[0].text
-        # ----------------------------
-
-        print("INFO: Idea generated successfully from AI.")
+        idea_text = response.text
+        print("INFO: Idea generated successfully from Vertex AI.")
     except Exception as e:
-        error_message = f"ERROR: Failed to call Google AI API: {e}"
+        error_message = f"ERROR: Failed to call Vertex AI API: {e}"
         print(error_message)
         return error_message, 500
 
