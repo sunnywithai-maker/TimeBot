@@ -1,4 +1,4 @@
-# main.py (Final Version with stable text-bison model)
+# main.py (Final Corrected Version for text-bison model)
 import os
 import google.generativeai as genai
 from twilio.rest import Client
@@ -36,14 +36,11 @@ def run_daily_idea_automation():
         genai.configure(api_key=GEMINI_API_KEY)
         
         # --- THIS IS THE FINAL FIX ---
-        # Using the stable, globally available text-bison-001 model
-        # This model uses a different method name: generate_text
-        response = genai.generate_text(
-            model='models/text-bison-001',
-            prompt=BRAIN_PROMPT,
-            temperature=0.7,
-        )
-        idea_text = response.result
+        # Using the correct modern method for the stable text-bison model
+        model = genai.GenerativeModel('models/text-bison-001') 
+        response = model.generate_content(BRAIN_PROMPT)
+        # For this model, the result is in a different property
+        idea_text = response.candidates[0].content.parts[0].text
         # ----------------------------
 
         print("INFO: Idea generated successfully from AI.")
